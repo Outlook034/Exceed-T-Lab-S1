@@ -1,5 +1,5 @@
 # Exceed-T-Lab-S1
-# VAR
+# 1.VAR
 ## 简介
 在这里简要介绍你的项目，包括用途、功能和主要特点。
 
@@ -17,36 +17,30 @@ VPN加速：
     conda create -n var python=3.10
     conda activate var
    ```
-3. 安装依赖：
-   ```bash
-   cd VAR
-   npm install
-   ```
-4. 运行项目：
-   ```bash
-   npm start
-   ```
+   Install ```torch>=2.0.0```
+   Install other pip packages via ```pip3 install -r requirements.txt.```
 
 ## Imagenet数据准备
-
+1. 创建空文件夹
 ```bash
 mkdir train
 mkdir val
 ```
+2. 解压库里自带的数据集压缩包
 ```bash
 tar xvf ../autodl-pub/ImageNet/ILSVRC2012/ILSVRC2012_img_train.tar -C ./train
 
 tar xvf ../autodl-pub/ImageNet/ILSVRC2012/ILSVRC2012_img_val.tar -C ./val
+
+tar -xzf ../autodl-pub/ImageNet/ILSVRC2012/ILSVRC2012_devkit_t12.tar.gz
 ```
 
-
+3. 映射处理
 ```python
 for x in ./train/*.tar; do mkdir -p "./train/$(basename "$x" .tar)" && tar -xvf "$x" -C "./train/$(basename "$x" .tar)" && rm "$x" && echo "已处理: $x"; done
 ```
 
-```bash
-tar -xzf ../autodl-pub/ImageNet/ILSVRC2012/ILSVRC2012_devkit_t12.tar.gz
-```
+
 ```python
 from scipy import io
 import os
@@ -91,6 +85,18 @@ if __name__ == '__main__':
     move_valimg()
 
 ```
+
+## 训练
+```bash
+# d16, 256x256
+torchrun --nproc_per_node=8 --nnodes=... --node_rank=... --master_addr=... --master_port=... train.py \
+  --depth=16 --bs=768 --ep=200 --fp16=1 --alng=1e-3 --wpe=0.1
+```
+## 评估
+### Sampling
+For FID evaluation, use ```var.autoregressive_infer_cfg(..., cfg=1.5, top_p=0.96, top_k=900, more_smooth=False)``` to sample 50,000 images (50 per class) and save them as PNG (not JPEG) files in a folder. Pack them into a ```.npz``` file via ```create_npz_from_sample_folder(sample_folder)``` in utils/misc.py#L344. 
+### Evaluate
+Use the ```OpenAI's FID evaluation toolkit``` and reference ground truth npz file of ```256x256``` or ```512x512``` to evaluate ```FID, IS, precision, and recall```.
 ## 贡献
 
 欢迎贡献代码！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
