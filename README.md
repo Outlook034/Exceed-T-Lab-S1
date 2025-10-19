@@ -95,8 +95,19 @@ torchrun --nproc_per_node=8 --nnodes=... --node_rank=... --master_addr=... --mas
 ## 评估
 ### Sampling
 For FID evaluation, use ```var.autoregressive_infer_cfg(..., cfg=1.5, top_p=0.96, top_k=900, more_smooth=False)``` to sample 50,000 images (50 per class) and save them as PNG (not JPEG) files in a folder. Pack them into a ```.npz``` file via ```create_npz_from_sample_folder(sample_folder)``` in utils/misc.py#L344. 
+
+
+```bash
+torchrun --nproc_per_node=1 var_sample.py --depth 16 --vae_ckpt vae_ch160v4096z32.pth --var_ckpt ../autodl-tmp/var_d16.pth
+```
+
+
 ### Evaluate
 Use the ```OpenAI's FID evaluation toolkit``` and reference ground truth npz file of ```256x256``` or ```512x512``` to evaluate ```FID, IS, precision, and recall```.
+
+```bash
+python guided-diffusion/evaluations/evaluator.py   ../autodl-tmp/VIRTUAL_imagenet256_labeled/VIRTUAL_imagenet256_labeled.npz   ../autodl-tmp/samples/d16-var_d16-cfg-1.0-seed-1.npz
+```
 
 
 # 2.MAR
